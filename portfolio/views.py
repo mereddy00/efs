@@ -141,6 +141,22 @@ def investment_delete(request, pk):
 
 
 @login_required
+def customer_new(request):
+    if request.method == "POST":
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            customer = form.save(commit=False)
+            customer.created_date = timezone.now()
+            customer.save()
+            customer = Customer.objects.filter(created_date__lte=timezone.now())
+            return render(request, 'portfolio/customer_list.html',
+                          {'customers': customer})
+    else:
+        form = CustomerForm()
+    return render(request, 'portfolio/customer_new.html', {'form': form})
+
+
+@login_required
 def portfolio(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     customers = Customer.objects.filter(created_date__lte=timezone.now())
@@ -165,7 +181,7 @@ def portfolio(request, pk):
                                                         'sum_recent_value': sum_recent_value,
                                                         'sum_current_stocks_value': sum_current_stocks_value,
                                                         'sum_of_initial_stock_value': sum_of_initial_stock_value,
-                                                        'customer': customer,})
+                                                        'customer': customer, })
 
 
 class CustomerList(APIView):
@@ -174,3 +190,71 @@ class CustomerList(APIView):
         customers_json = Customer.objects.all()
         serializer = CustomerSerializer(customers_json, many=True)
         return Response(serializer.data)
+
+
+def signup_successful(request):
+    return render(request, 'registration/signup_successful.html', {'portfolio': signup_successful})
+
+
+def AdvisorSignUp(request):
+    form = SignUpForm()
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('portfolio:signup_successful')
+        else:
+            context = {'form': form}
+            return render(request, 'registration/signup_form.html', context)
+    else:
+        context = {'form': form}
+        return render(request, 'registration/signup_form.html', context)
+
+
+@login_required
+def mutualfund_list(request):
+    mutualfunds = MutualFund.objects.filter(acquired_date__lte=timezone.now())
+    return render(request, 'portfolio/mutualfund_list.html', {'mutualfunds': mutualfunds})
+
+
+@login_required
+def mutualfund_new(request):
+    if request.method == "POST":
+        form = MutualFundForm(request.POST)
+        if form.is_valid():
+            mutualfund = form.save(commit=False)
+            mutualfund.created_date = timezone.now()
+            mutualfund.save()
+            mutualfunds = MutualFund.objects.filter(acquired_date__lte=timezone.now())
+            return render(request, 'portfolio/mutualfund_list.html',
+                          {'mutualfunds': mutualfunds})
+    else:
+        form = MutualFundForm()
+        # print("Else")
+    return render(request, 'portfolio/mutualfund_new.html', {'form': form})
+
+
+@login_required
+def mutualfund_edit(request, pk):
+    mutualfund = get_object_or_404(MutualFund, pk=pk)
+    if request.method == "POST":
+        form = MutualFundForm(request.POST, instance=mutualfund)
+        if form.is_valid():
+            mutualfund = form.save()
+
+            mutualfund.updated_date = timezone.now()
+            mutualfund.save()
+            mutualfunds = MutualFund.objects.filter(acquired_date__lte=timezone.now())
+            return render(request, 'portfolio/mutualfund_list.html', {'mutualfunds': mutualfunds})
+    else:
+        # print("else")
+        form = MutualFundForm(instance=mutualfund)
+    return render(request, 'portfolio/mutualfund_edit.html', {'form': form})
+
+
+@login_required
+def mutualfund_delete(request, pk):
+    mutualfund = get_object_or_404(MutualFund, pk=pk)
+    mutualfund.delete()
+    mutualfunds = MutualFund.objects.filter(acquired_date__lte=timezone.now())
+    return render(request, 'portfolio/mutualfund_list.html', {'mutualfunds': mutualfunds})
