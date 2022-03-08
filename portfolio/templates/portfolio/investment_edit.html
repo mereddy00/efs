@@ -5,6 +5,6 @@
     <h1>Edit Investment</h1>
         <form method="POST" class="investment-form">{% csrf_token %}
          {{ form|crispy }}
-        <button type="submit" class="save btn btn-default">Update</button>
+        <button type="submit" class="save btn btn-default" style="background-color: olive">Update</button>
     </form>
 {% endblock %}
